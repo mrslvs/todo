@@ -3,10 +3,12 @@
 // to-do
 //      types of tasks (home, work, sport, ...)
 //      do not add duplicates
+//      merge _displayTasks() to one
 
 const form = document.getElementById("form");
 const formInputText = document.getElementById("todo-input");
 const list = document.getElementById("todo-list");
+const finishedList = document.getElementById("done-list");
 
 class App {
     tasks = [];
@@ -20,26 +22,33 @@ class App {
         form.addEventListener("submit", this._addTask.bind(this));
 
         // handle button click (finish/delete task)
-        document.addEventListener("click", function (e) {
-            const clicked = e.target;
+        document.addEventListener("click", this._handleButtonClick.bind(this));
+    }
 
-            if (clicked.classList.contains("task-button")) {
-                // get .todo-text (sibling element)
-                //      1. choose parent element
-                //      2. search for the child by class (.todo-text)
-                const taskText =
-                    clicked.parentElemet.querySelector(".todo-text");
+    _handleButtonClick(e) {
+        const clicked = e.target;
 
-                // get instance by searching for text (assuming no duplicate tasks are present)
+        if (clicked.classList.contains("task-button")) {
+            // get .todo-text (sibling element)
+            //      1. choose parent element
+            //      2. search for the child by class (.todo-text)
+            const taskText =
+                clicked.parentElement.querySelector(".todo-text").textContent;
 
-                // finishing or deleting? :
-                if (clicked.classList.contains("finish-task")) {
-                }
+            console.log(taskText);
+            // get instance by searching for text (assuming no duplicate tasks are present)
+            const tsk = this.tasks.find(tsk => tsk.text === taskText);
 
-                if (clicked.classList.contains("delete-task")) {
-                }
+            // finishing or deleting? :
+            if (clicked.classList.contains("finish-task")) {
+                this._finishTask(tsk);
             }
-        });
+
+            if (clicked.classList.contains("delete-task")) {
+                console.log("you wish to delete task:");
+                console.log(clicked);
+            }
+        }
     }
 
     _addTask(e) {
@@ -75,18 +84,29 @@ class App {
     }
 
     _loadTasks() {
-        const tasks = JSON.parse(localStorage.getItem("todo-tasks"));
+        const tasksStorage = JSON.parse(localStorage.getItem("todo-tasks"));
+        const finishedTasksStorage = JSON.parse(
+            localStorage.getItem("finished-tasks")
+        );
 
-        if (!tasks) return;
+        this.tasks = tasksStorage;
+        this.finishedTasks = finishedTasksStorage;
 
-        this.tasks = tasks;
+        if (tasksStorage) {
+            this.tasks.forEach(task => {
+                this._displayTask(task);
+            });
+        }
 
-        this.tasks.forEach(task => {
-            this._displayTask(task);
-        });
+        if (finishedTasksStorage) {
+            this.finishedTasks.forEach(fTask => {
+                this._displayFinishedTask(fTask);
+            });
+        }
     }
 
     _finishTask(task) {
+        console.log(task);
         task.finishTask();
 
         // from array remove passed task
@@ -100,6 +120,18 @@ class App {
             "completed_tasks",
             JSON.stringify(this.finishedTasks)
         );
+    }
+
+    _displayFinishedTask(task) {
+        let html = `
+            <div class="todo-task">
+                <p class="todo-text">${task.text}</p>
+                <button class="task-button finish-task">✅</button>
+                <button class="task-button delete-task">❌</button>
+            </div>
+        `;
+
+        finishedList.insertAdjacentHTML("afterbegin", html);
     }
 }
 
