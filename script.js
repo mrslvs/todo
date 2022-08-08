@@ -5,10 +5,14 @@ const formInputText = document.getElementById("todo-input");
 const list = document.getElementById("todo-list");
 
 class App {
+    items = [];
+
     constructor() {
         // load item from application data
+        this._loadItems();
+
+        // handle submitting new item
         form.addEventListener("submit", this._addItem.bind(this));
-        console.log("created instance of App");
     }
 
     _addItem(e) {
@@ -17,10 +21,11 @@ class App {
 
         // create instance of Item if text is entered
         if (formInputText.value.length === 0) return;
-
         const item = new Item(formInputText.value);
 
         //save item to local storage
+        this.items.push(item);
+        localStorage.setItem("todo-items", JSON.stringify(this.items));
 
         //display item (refresh)
         this._displayItem(item);
@@ -36,6 +41,18 @@ class App {
         `;
 
         list.insertAdjacentHTML("afterbegin", html);
+    }
+
+    _loadItems() {
+        const items = JSON.parse(localStorage.getItem("todo-items"));
+
+        if (!items) return;
+
+        this.items = items;
+
+        this.items.forEach(item => {
+            this._displayItem(item);
+        });
     }
 }
 
