@@ -6,6 +6,7 @@ const list = document.getElementById("todo-list");
 
 class App {
     items = [];
+    finishedItems;
 
     constructor() {
         // load item from application data
@@ -23,12 +24,16 @@ class App {
         if (formInputText.value.length === 0) return;
         const item = new Item(formInputText.value);
 
-        //save item to local storage
+        // save item to local storage
         this.items.push(item);
         localStorage.setItem("todo-items", JSON.stringify(this.items));
 
-        //display item (refresh)
+        // display item
         this._displayItem(item);
+
+        // clear input field
+        formInputText.value = "";
+        formInputText.focus();
     }
 
     _displayItem(item) {
@@ -36,7 +41,7 @@ class App {
             <div class="todo-item">
                 <p class="todo-text">${item.text}</p>
                 <button class="item-button">✅</button>
-                <button class="item-button">🚮</button>
+                <button class="item-button">❌</button>
             </div>
         `;
 
@@ -54,21 +59,36 @@ class App {
             this._displayItem(item);
         });
     }
+
+    _finishTask(item) {
+        item.finishTask();
+
+        // from array remove passed item
+        this.items.splice(this.items.indexOf(item), 1);
+        this.finishedTasks.push(item);
+
+        // update local storage
+        localStorage.removeItem("todo-items");
+        localStorage.setItem("todo-items", JSON.stringify(this.items));
+    }
 }
 
 class Item {
+    id;
     text;
     createdDate;
     finishedDate;
 
     constructor(text) {
+        this.id = (Date.now() + "").slice(-10); // last 10 digits
         this.createdDate = Date.now();
         this.text = text + "";
         console.log("created instance of Item");
     }
 
-    _finishTask() {
-        this.finishedDate = Date.now();
+    finishTask() {
+        this.this.finishedDate = Date.now();
+        this.text = this.text.strike();
     }
 }
 

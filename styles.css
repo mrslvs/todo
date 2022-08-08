@@ -55,3 +55,8 @@ h1 {
 .buttons {
     align-items: center;
 }
+
+.delim {
+    max-width: 80%;
+    margin: 15px auto 15px auto;
+}
