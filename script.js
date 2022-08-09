@@ -4,6 +4,7 @@
 //      types of tasks (home, work, sport, ...)
 //      do not add duplicates
 //      merge _displayTasks() to one
+//      localStorage to instance of class
 
 const form = document.getElementById("form");
 const formInputText = document.getElementById("todo-input");
@@ -11,11 +12,11 @@ const list = document.getElementById("todo-list");
 const finishedList = document.getElementById("done-list");
 
 class App {
-    tasks = [];
-    finishedTasks = [];
+    #tasks = [];
+    #finishedTasks = [];
 
     constructor() {
-        // load item from application data
+        // load Tasks from localStorage (+display them)
         this._loadTasks();
 
         // handle submitting new task
@@ -23,6 +24,36 @@ class App {
 
         // handle button click (finish/delete task)
         document.addEventListener("click", this._handleButtonClick.bind(this));
+    }
+
+    _loadTasks() {
+        let tasksStorage = JSON.parse(localStorage.getItem("todo-tasks"));
+        let finishedTasksStorage = JSON.parse(
+            localStorage.getItem("finished-tasks")
+        );
+
+        if (tasksStorage) {
+            tasksStorage.forEach(task => {
+                // from parsed objects create instances of Task
+                let t = Object.assign(new Task(), task);
+                this.#tasks.push(t);
+            });
+
+            this.#tasks.forEach(task => {
+                this._displayTask(task);
+            });
+        }
+
+        if (finishedTasksStorage) {
+            finishedTasksStorage.forEach(fTask => {
+                let fT = Object.assign(new Task(), fTask);
+                this.#finishedTasks.push(fT);
+            });
+
+            this.#finishedTasks.forEach(fTask => {
+                this._displayTask(fTask);
+            });
+        }
     }
 
     _handleButtonClick(e) {
@@ -80,33 +111,14 @@ class App {
             </div>
         `;
 
-        list.insertAdjacentHTML("afterbegin", html);
-    }
-
-    _loadTasks() {
-        const tasksStorage = JSON.parse(localStorage.getItem("todo-tasks"));
-        const finishedTasksStorage = JSON.parse(
-            localStorage.getItem("finished-tasks")
-        );
-
-        this.tasks = tasksStorage;
-        this.finishedTasks = finishedTasksStorage;
-
-        if (tasksStorage) {
-            this.tasks.forEach(task => {
-                this._displayTask(task);
-            });
-        }
-
-        if (finishedTasksStorage) {
-            this.finishedTasks.forEach(fTask => {
-                this._displayFinishedTask(fTask);
-            });
+        if (task.finishedDate) {
+            finishedList.insertAdjacentHTML("afterbegin", html);
+        } else {
+            list.insertAdjacentHTML("afterbegin", html);
         }
     }
 
     _finishTask(task) {
-        console.log(task);
         task.finishTask();
 
         // from array remove passed task
@@ -120,18 +132,6 @@ class App {
             "completed_tasks",
             JSON.stringify(this.finishedTasks)
         );
-    }
-
-    _displayFinishedTask(task) {
-        let html = `
-            <div class="todo-task">
-                <p class="todo-text">${task.text}</p>
-                <button class="task-button finish-task">✅</button>
-                <button class="task-button delete-task">❌</button>
-            </div>
-        `;
-
-        finishedList.insertAdjacentHTML("afterbegin", html);
     }
 }
 
