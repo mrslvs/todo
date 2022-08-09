@@ -130,7 +130,7 @@ class App {
             }
 
             if (clicked.classList.contains("delete-task")) {
-                this._hideTask(tsk);
+                this._deleteTask(tsk);
             }
         }
     }
@@ -150,6 +150,7 @@ class App {
             "finished-tasks",
             JSON.stringify(this.#finishedTasks)
         );
+        this._displayTask(task);
     }
 
     _hideTask(task) {
@@ -162,7 +163,6 @@ class App {
             // if task has been finished, search in this node
             searchIn = finishedList;
         }
-        console.log(task);
 
         const taskElements = searchIn.querySelectorAll(".todo-task"); // all <div class="todo-task">
         // ? cannot use: .find(el => el.querySelector(".todo-text").textContent === task.text);
@@ -179,10 +179,21 @@ class App {
     }
 
     _deleteTask(task) {
+        this._hideTask(task);
+
         if (task.finishedDate) {
-            this.#finishedTasks.splice(this.#finishedTasks.indexOf(task), 1); // delete task usin splice method
+            this.#finishedTasks.splice(this.#finishedTasks.indexOf(task), 1); // remove task from array using splice method
+            localStorage.removeItem("finished-tasks");
+            localStorage.setItem(
+                "finished-tasks",
+                JSON.stringify(this.#finishedTasks)
+            );
             return;
         }
+
+        this.#tasks.splice(this.#tasks.indexOf(task), 1);
+        localStorage.removeItem("todo-tasks");
+        localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
     }
 }
 
