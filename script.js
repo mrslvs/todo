@@ -14,17 +14,15 @@ class App {
     #finishedTasks = [];
 
     constructor() {
-        // load Tasks from localStorage (+display them)
         this._loadTasks();
-
-        // handle submitting new task
         form.addEventListener("submit", this._addTask.bind(this));
-
-        // handle button click (finish/delete task)
         document.addEventListener("click", this._handleButtonClick.bind(this));
     }
 
     _loadTasks() {
+        // take data from localStorages, parse it to Task class instances
+        // display both #tasks and #finishedTasks
+
         let tasksStorage = JSON.parse(localStorage.getItem("todo-tasks"));
         let finishedTasksStorage = JSON.parse(
             localStorage.getItem("finished-tasks")
@@ -51,19 +49,22 @@ class App {
     }
 
     _displayTask(task) {
-        let html = `
-            <div class="todo-task">
-                <p class="todo-text">${task.text}</p>
-        `;
+        // take Task as argument, decide if it's been finished
+        // insert into HTML accordingly
+
+        let html = `<div class="todo-task">`;
 
         if (task.finishedDate) {
-            html += `
-            <button class="task-button delete-task">❌</button>
+            html += `            
+                <p class="todo-text"><strike>${task.text}</strike></p>
+                <button class="task-button repeat-task">🔁</button>
+                <button class="task-button delete-task">❌</button>
             </div>
             `;
             finishedList.insertAdjacentHTML("afterbegin", html);
         } else {
             html += `
+                <p class="todo-text">${task.text}</p>
                 <button class="task-button finish-task">✅</button>
                 <button class="task-button delete-task">❌</button>
             </div>
@@ -73,12 +74,16 @@ class App {
     }
 
     _displayTasks(taskArray) {
+        // take array of tasks and display each one
+
         taskArray.forEach(task => {
             this._displayTask(task);
         });
     }
 
     _addTask(e) {
+        // create new task from FORM, save it into local storage and display it
+
         // prevent page from reloading
         e.preventDefault();
 
@@ -99,7 +104,9 @@ class App {
     }
 
     _handleButtonClick(e) {
-        const clicked = e.target;
+        // handle task-button click (finish, delete, repeat)
+
+        const clicked = e.target; // which button has been clicked
 
         if (clicked.classList.contains("task-button")) {
             // get .todo-text (sibling element of button)
@@ -114,12 +121,7 @@ class App {
             if (!tsk) {
                 // if task wasn't found among #tasks, it's in #finishedTasks
                 // finished tasks contain <strike> & </strike> tags, need to remove them
-                tsk = this.#finishedTasks.find(
-                    tsk =>
-                        tsk.text
-                            .replace("<strike>", "")
-                            .replace("</strike>", "") === taskText
-                );
+                tsk = this.#finishedTasks.find(tsk => tsk.text === taskText);
             }
 
             // finishing or deleting? :
@@ -128,19 +130,18 @@ class App {
             }
 
             if (clicked.classList.contains("delete-task")) {
-                console.log("you wish to delete task:");
-                console.log(tsk);
+                this._hideTask(tsk);
             }
         }
     }
 
     _finishTask(task) {
+        // take task, hide it, finish it (move it ot #finishedTasks) and display accordingly
+
+        this._hideTask(task);
         task = task.finishTask();
 
-        // from array remove passed task
-        this.#tasks.splice(this.#tasks.indexOf(task), 1);
-
-        // add this task to finished tasks
+        this.#tasks.splice(this.#tasks.indexOf(task), 1); // from array remove passed task
         this.#finishedTasks.push(task);
 
         // update local storage
@@ -149,14 +150,38 @@ class App {
             "finished-tasks",
             JSON.stringify(this.#finishedTasks)
         );
+    }
 
-        this._displayTasks(this.#tasks);
-        this._displayTasks(this.#finishedTasks);
+    _hideTask(task) {
+        // take task, find its parent element <div class="todo-task"> (find by task.text) and remove it from html
+
+        // all divs are childElements of list or finishedList
+        let searchIn = list;
+
+        if (task.finishedDate) {
+            // if task has been finished, search in this node
+            searchIn = finishedList;
+        }
+        console.log(task);
+
+        const taskElements = searchIn.querySelectorAll(".todo-task"); // all <div class="todo-task">
+        // ? cannot use: .find(el => el.querySelector(".todo-text").textContent === task.text);
+
+        let nodeToRemove;
+
+        taskElements.forEach(el => {
+            if (el.querySelector(".todo-text").textContent === task.text) {
+                nodeToRemove = el;
+            }
+        });
+
+        nodeToRemove.remove();
     }
 
     _deleteTask(task) {
         if (task.finishedDate) {
             this.#finishedTasks.splice(this.#finishedTasks.indexOf(task), 1); // delete task usin splice method
+            return;
         }
     }
 }
@@ -175,7 +200,6 @@ class Task {
 
     finishTask() {
         this.finishedDate = Date.now();
-        this.text = this.text.strike();
 
         return this;
     }
