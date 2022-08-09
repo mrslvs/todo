@@ -2,7 +2,6 @@
 
 // to-do
 //      types of tasks (home, work, sport, ...)
-//      do not add duplicates
 //      remove all done tasks button
 
 const form = document.getElementById("form");
@@ -88,8 +87,10 @@ class App {
         // prevent page from reloading
         e.preventDefault();
 
-        // create instance of Item if text is entered
-        if (formInputText.value.length === 0) return;
+        // this._isDuplicate();
+
+        // create instance of Item if text is entered and is not duplicate
+        if (formInputText.value.length === 0 || this._isDuplicate()) return;
         const task = new Task(formInputText.value);
 
         // save item to local storage
@@ -102,6 +103,20 @@ class App {
         // clear input field
         formInputText.value = "";
         formInputText.focus();
+    }
+
+    _isDuplicate() {
+        const texts = document.querySelectorAll(".todo-text");
+
+        let isDup = false;
+
+        texts.forEach(txt => {
+            if (txt.textContent === formInputText.value) {
+                isDup = true;
+            }
+        });
+
+        return isDup;
     }
 
     _handleButtonClick(e) {
