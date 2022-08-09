@@ -3,6 +3,7 @@
 // to-do
 //      types of tasks (home, work, sport, ...)
 //      do not add duplicates
+//      remove task from array (separate function)
 
 const form = document.getElementById("form");
 const formInputText = document.getElementById("todo-input");
@@ -132,6 +133,10 @@ class App {
             if (clicked.classList.contains("delete-task")) {
                 this._deleteTask(tsk);
             }
+
+            if (clicked.classList.contains("repeat-task")) {
+                this._repeatTask(tsk);
+            }
         }
     }
 
@@ -183,7 +188,6 @@ class App {
 
         if (task.finishedDate) {
             this.#finishedTasks.splice(this.#finishedTasks.indexOf(task), 1); // remove task from array using splice method
-            localStorage.removeItem("finished-tasks");
             localStorage.setItem(
                 "finished-tasks",
                 JSON.stringify(this.#finishedTasks)
@@ -192,8 +196,23 @@ class App {
         }
 
         this.#tasks.splice(this.#tasks.indexOf(task), 1);
-        localStorage.removeItem("todo-tasks");
         localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
+    }
+
+    _repeatTask(task) {
+        this._hideTask(task);
+        task = task.repeatTask();
+
+        this.#finishedTasks.splice(this.#finishedTasks.indexOf(task), 1);
+        this.#tasks.push(task);
+
+        localStorage.setItem(
+            "finished-tasks",
+            JSON.stringify(this.#finishedTasks)
+        );
+        localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
+
+        this._displayTask(task);
     }
 }
 
@@ -211,6 +230,12 @@ class Task {
 
     finishTask() {
         this.finishedDate = Date.now();
+
+        return this;
+    }
+
+    repeatTask() {
+        this.finishedDate = undefined;
 
         return this;
     }
