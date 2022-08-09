@@ -3,7 +3,7 @@
 // to-do
 //      types of tasks (home, work, sport, ...)
 //      do not add duplicates
-//      remove task from array (separate function)
+//      remove all done tasks button
 
 const form = document.getElementById("form");
 const formInputText = document.getElementById("todo-input");
@@ -144,9 +144,9 @@ class App {
         // take task, hide it, finish it (move it ot #finishedTasks) and display accordingly
 
         this._hideTask(task);
+        this._removeTaskFromArray(task);
         task = task.finishTask();
 
-        this.#tasks.splice(this.#tasks.indexOf(task), 1); // from array remove passed task
         this.#finishedTasks.push(task);
 
         this._updateStorage();
@@ -183,13 +183,13 @@ class App {
         this._hideTask(task);
 
         if (task.finishedDate) {
-            this.#finishedTasks.splice(this.#finishedTasks.indexOf(task), 1); // remove task from array using splice method
+            this._removeTaskFromArray(task);
             this._updateStorage();
 
             return;
         }
 
-        this.#tasks.splice(this.#tasks.indexOf(task), 1);
+        this._removeTaskFromArray(task);
         this._updateStorage();
     }
 
@@ -197,7 +197,7 @@ class App {
         this._hideTask(task);
         task = task.repeatTask();
 
-        this.#finishedTasks.splice(this.#finishedTasks.indexOf(task), 1);
+        this._removeTaskFromArray(task);
         this.#tasks.push(task);
 
         this._updateStorage();
@@ -211,6 +211,16 @@ class App {
             "finished-tasks",
             JSON.stringify(this.#finishedTasks)
         );
+    }
+
+    _removeTaskFromArray(task) {
+        if (task.finishedDate) {
+            this.#finishedTasks.splice(this.#finishedTasks.indexOf(task), 1);
+
+            return;
+        }
+
+        this.#tasks.splice(this.#tasks.indexOf(task), 1);
     }
 }
 
