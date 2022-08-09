@@ -94,7 +94,7 @@ class App {
 
         // save item to local storage
         this.#tasks.push(task);
-        localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
+        this._updateStorage();
 
         // display new item
         this._displayTask(task);
@@ -149,12 +149,8 @@ class App {
         this.#tasks.splice(this.#tasks.indexOf(task), 1); // from array remove passed task
         this.#finishedTasks.push(task);
 
-        // update local storage
-        localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
-        localStorage.setItem(
-            "finished-tasks",
-            JSON.stringify(this.#finishedTasks)
-        );
+        this._updateStorage();
+
         this._displayTask(task);
     }
 
@@ -188,15 +184,13 @@ class App {
 
         if (task.finishedDate) {
             this.#finishedTasks.splice(this.#finishedTasks.indexOf(task), 1); // remove task from array using splice method
-            localStorage.setItem(
-                "finished-tasks",
-                JSON.stringify(this.#finishedTasks)
-            );
+            this._updateStorage();
+
             return;
         }
 
         this.#tasks.splice(this.#tasks.indexOf(task), 1);
-        localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
+        this._updateStorage();
     }
 
     _repeatTask(task) {
@@ -206,13 +200,17 @@ class App {
         this.#finishedTasks.splice(this.#finishedTasks.indexOf(task), 1);
         this.#tasks.push(task);
 
+        this._updateStorage();
+
+        this._displayTask(task);
+    }
+
+    _updateStorage() {
+        localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
         localStorage.setItem(
             "finished-tasks",
             JSON.stringify(this.#finishedTasks)
         );
-        localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
-
-        this._displayTask(task);
     }
 }
 
