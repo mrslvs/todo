@@ -26,7 +26,8 @@ h1 {
     align-items: center;
 }
 
-#todo-list {
+#todo-list,
+#done-list {
     display: flex;
     flex-direction: column;
     justify-content: center;

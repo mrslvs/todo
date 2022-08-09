@@ -3,8 +3,6 @@
 // to-do
 //      types of tasks (home, work, sport, ...)
 //      do not add duplicates
-//      merge _displayTasks() to one
-//      localStorage to instance of class
 
 const form = document.getElementById("form");
 const formInputText = document.getElementById("todo-input");
@@ -27,24 +25,19 @@ class App {
     }
 
     _loadTasks() {
-        console.log("_loadTasks()");
         let tasksStorage = JSON.parse(localStorage.getItem("todo-tasks"));
         let finishedTasksStorage = JSON.parse(
             localStorage.getItem("finished-tasks")
         );
 
-        console.log(finishedTasksStorage);
-
         if (tasksStorage) {
+            // from parsed JSON objects create instances of Task & save to variable
             tasksStorage.forEach(task => {
-                // from parsed objects create instances of Task
                 let t = Object.assign(new Task(), task);
                 this.#tasks.push(t);
             });
 
-            this.#tasks.forEach(task => {
-                this._displayTask(task);
-            });
+            this._displayTasks(this.#tasks);
         }
 
         if (finishedTasksStorage) {
@@ -53,9 +46,7 @@ class App {
                 this.#finishedTasks.push(fT);
             });
 
-            this.#finishedTasks.forEach(fTask => {
-                this._displayTask(fTask);
-            });
+            this._displayTasks(this.#finishedTasks);
         }
     }
 
@@ -67,6 +58,7 @@ class App {
 
         if (task.finishedDate) {
             html += `
+            <button class="task-button delete-task">❌</button>
             </div>
             `;
             finishedList.insertAdjacentHTML("afterbegin", html);
@@ -78,6 +70,12 @@ class App {
             `;
             list.insertAdjacentHTML("afterbegin", html);
         }
+    }
+
+    _displayTasks(taskArray) {
+        taskArray.forEach(task => {
+            this._displayTask(task);
+        });
     }
 
     _addTask(e) {
@@ -92,7 +90,7 @@ class App {
         this.#tasks.push(task);
         localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
 
-        // display item
+        // display new item
         this._displayTask(task);
 
         // clear input field
@@ -104,14 +102,25 @@ class App {
         const clicked = e.target;
 
         if (clicked.classList.contains("task-button")) {
-            // get .todo-text (sibling element)
+            // get .todo-text (sibling element of button)
             //      1. choose parent element
             //      2. search for the child by class (.todo-text)
             const taskText =
                 clicked.parentElement.querySelector(".todo-text").textContent;
 
-            // get instance by searching for text (assuming no duplicate tasks are present)
-            const tsk = this.#tasks.find(tsk => tsk.text === taskText);
+            // get instance of Task by searching for text (assuming no duplicate tasks are present)
+            let tsk = this.#tasks.find(tsk => tsk.text === taskText);
+
+            if (!tsk) {
+                // if task wasn't found among #tasks, it's in #finishedTasks
+                // finished tasks contain <strike> & </strike> tags, need to remove them
+                tsk = this.#finishedTasks.find(
+                    tsk =>
+                        tsk.text
+                            .replace("<strike>", "")
+                            .replace("</strike>", "") === taskText
+                );
+            }
 
             // finishing or deleting? :
             if (clicked.classList.contains("finish-task")) {
@@ -134,15 +143,21 @@ class App {
         // add this task to finished tasks
         this.#finishedTasks.push(task);
 
-        console.log(this.#tasks);
-        console.log(this.#finishedTasks);
-
         // update local storage
         localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
         localStorage.setItem(
             "finished-tasks",
             JSON.stringify(this.#finishedTasks)
         );
+
+        this._displayTasks(this.#tasks);
+        this._displayTasks(this.#finishedTasks);
+    }
+
+    _deleteTask(task) {
+        if (task.finishedDate) {
+            this.#finishedTasks.splice(this.#finishedTasks.indexOf(task), 1); // delete task usin splice method
+        }
     }
 }
 
