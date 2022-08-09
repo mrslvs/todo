@@ -2,7 +2,8 @@
 
 // to-do
 //      types of tasks (home, work, sport, ...)
-//      remove all done tasks button
+//      remove all finished-tasks button
+//      isDuplicate or 0 chars eneter? => show warning (html+css)
 
 const form = document.getElementById("form");
 const formInputText = document.getElementById("todo-input");
@@ -20,8 +21,7 @@ class App {
     }
 
     _loadTasks() {
-        // take data from localStorages, parse it to Task class instances
-        // display both #tasks and #finishedTasks
+        // load data from localStorage and display it
 
         let tasksStorage = JSON.parse(localStorage.getItem("todo-tasks"));
         let finishedTasksStorage = JSON.parse(
@@ -29,7 +29,7 @@ class App {
         );
 
         if (tasksStorage) {
-            // from parsed JSON objects create instances of Task & save to variable
+            // from parsed JSON objects create instances of Task & save to array
             tasksStorage.forEach(task => {
                 let t = Object.assign(new Task(), task);
                 this.#tasks.push(t);
@@ -48,37 +48,36 @@ class App {
         }
     }
 
-    _displayTask(task) {
-        // take Task as argument, decide if it's been finished
-        // insert into HTML accordingly
-
-        let html = `<div class="todo-task">`;
-
-        if (task.finishedDate) {
-            html += `            
-                <p class="todo-text"><strike>${task.text}</strike></p>
-                <button class="task-button repeat-task">🔁</button>
-                <button class="task-button delete-task">❌</button>
-            </div>
-            `;
-            finishedList.insertAdjacentHTML("afterbegin", html);
-        } else {
-            html += `
-                <p class="todo-text">${task.text}</p>
-                <button class="task-button finish-task">✅</button>
-                <button class="task-button delete-task">❌</button>
-            </div>
-            `;
-            list.insertAdjacentHTML("afterbegin", html);
-        }
-    }
-
     _displayTasks(taskArray) {
         // take array of tasks and display each one
 
         taskArray.forEach(task => {
             this._displayTask(task);
         });
+    }
+
+    _displayTask(task) {
+        // take Task as argument & insert it into HTML
+
+        let html = `<div class="todo-task">`;
+        let htmlEnd = `
+                <button class="task-button delete-task">❌</button>
+            </div>
+        `;
+
+        if (task.finishedDate) {
+            html += `            
+                <p class="todo-text"><strike>${task.text}</strike></p>
+                <button class="task-button repeat-task">🔁</button>
+            `;
+            finishedList.insertAdjacentHTML("afterbegin", html + htmlEnd);
+        } else {
+            html += `
+                <p class="todo-text">${task.text}</p>
+                <button class="task-button finish-task">✅</button>
+            `;
+            list.insertAdjacentHTML("afterbegin", html + htmlEnd);
+        }
     }
 
     _addTask(e) {
@@ -103,20 +102,6 @@ class App {
         // clear input field
         formInputText.value = "";
         formInputText.focus();
-    }
-
-    _isDuplicate() {
-        const texts = document.querySelectorAll(".todo-text");
-
-        let isDup = false;
-
-        texts.forEach(txt => {
-            if (txt.textContent === formInputText.value) {
-                isDup = true;
-            }
-        });
-
-        return isDup;
     }
 
     _handleButtonClick(e) {
@@ -170,31 +155,6 @@ class App {
         this._displayTask(task);
     }
 
-    _hideTask(task) {
-        // take task, find its parent element <div class="todo-task"> (find by task.text) and remove it from html
-
-        // all divs are childElements of list or finishedList
-        let searchIn = list;
-
-        if (task.finishedDate) {
-            // if task has been finished, search in this node
-            searchIn = finishedList;
-        }
-
-        const taskElements = searchIn.querySelectorAll(".todo-task"); // all <div class="todo-task">
-        // ? cannot use: .find(el => el.querySelector(".todo-text").textContent === task.text);
-
-        let nodeToRemove;
-
-        taskElements.forEach(el => {
-            if (el.querySelector(".todo-text").textContent === task.text) {
-                nodeToRemove = el;
-            }
-        });
-
-        nodeToRemove.remove();
-    }
-
     _deleteTask(task) {
         this._hideTask(task);
 
@@ -220,12 +180,29 @@ class App {
         this._displayTask(task);
     }
 
-    _updateStorage() {
-        localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
-        localStorage.setItem(
-            "finished-tasks",
-            JSON.stringify(this.#finishedTasks)
-        );
+    _hideTask(task) {
+        // take task, find its parent element <div class="todo-task"> (find by task.text) and remove it from html
+
+        // all divs are childElements of list or finishedList
+        let searchIn = list;
+
+        if (task.finishedDate) {
+            // if task has been finished, search in this node
+            searchIn = finishedList;
+        }
+
+        const taskElements = searchIn.querySelectorAll(".todo-task"); // all <div class="todo-task">
+        // ? cannot use: .find(el => el.querySelector(".todo-text").textContent === task.text);
+
+        let nodeToRemove;
+
+        taskElements.forEach(el => {
+            if (el.querySelector(".todo-text").textContent === task.text) {
+                nodeToRemove = el;
+            }
+        });
+
+        nodeToRemove.remove();
     }
 
     _removeTaskFromArray(task) {
@@ -236,6 +213,28 @@ class App {
         }
 
         this.#tasks.splice(this.#tasks.indexOf(task), 1);
+    }
+
+    _isDuplicate() {
+        const texts = document.querySelectorAll(".todo-text");
+
+        let isDup = false;
+
+        texts.forEach(txt => {
+            if (txt.textContent === formInputText.value) {
+                isDup = true;
+            }
+        });
+
+        return isDup;
+    }
+
+    _updateStorage() {
+        localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
+        localStorage.setItem(
+            "finished-tasks",
+            JSON.stringify(this.#finishedTasks)
+        );
     }
 }
 
