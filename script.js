@@ -162,6 +162,7 @@ class App {
         this._removeTaskFromArray(task);
         task = task.finishTask();
 
+        console.log(task);
         this.#finishedTasks.push(task);
 
         this._updateStorage();
@@ -210,13 +211,12 @@ class App {
 
     _repeatTask(task) {
         this._hideTask(task);
-        task = task.repeatTask();
-
         this._removeTaskFromArray(task);
+
+        task = task.repeatTask();
         this.#tasks.push(task);
 
         this._updateStorage();
-
         this._displayTask(task);
     }
 
