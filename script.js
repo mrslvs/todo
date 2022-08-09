@@ -27,10 +27,13 @@ class App {
     }
 
     _loadTasks() {
+        console.log("_loadTasks()");
         let tasksStorage = JSON.parse(localStorage.getItem("todo-tasks"));
         let finishedTasksStorage = JSON.parse(
             localStorage.getItem("finished-tasks")
         );
+
+        console.log(finishedTasksStorage);
 
         if (tasksStorage) {
             tasksStorage.forEach(task => {
@@ -56,29 +59,24 @@ class App {
         }
     }
 
-    _handleButtonClick(e) {
-        const clicked = e.target;
+    _displayTask(task) {
+        let html = `
+            <div class="todo-task">
+                <p class="todo-text">${task.text}</p>
+        `;
 
-        if (clicked.classList.contains("task-button")) {
-            // get .todo-text (sibling element)
-            //      1. choose parent element
-            //      2. search for the child by class (.todo-text)
-            const taskText =
-                clicked.parentElement.querySelector(".todo-text").textContent;
-
-            console.log(taskText);
-            // get instance by searching for text (assuming no duplicate tasks are present)
-            const tsk = this.tasks.find(tsk => tsk.text === taskText);
-
-            // finishing or deleting? :
-            if (clicked.classList.contains("finish-task")) {
-                this._finishTask(tsk);
-            }
-
-            if (clicked.classList.contains("delete-task")) {
-                console.log("you wish to delete task:");
-                console.log(clicked);
-            }
+        if (task.finishedDate) {
+            html += `
+            </div>
+            `;
+            finishedList.insertAdjacentHTML("afterbegin", html);
+        } else {
+            html += `
+                <button class="task-button finish-task">✅</button>
+                <button class="task-button delete-task">❌</button>
+            </div>
+            `;
+            list.insertAdjacentHTML("afterbegin", html);
         }
     }
 
@@ -91,8 +89,8 @@ class App {
         const task = new Task(formInputText.value);
 
         // save item to local storage
-        this.tasks.push(task);
-        localStorage.setItem("todo-tasks", JSON.stringify(this.tasks));
+        this.#tasks.push(task);
+        localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
 
         // display item
         this._displayTask(task);
@@ -102,35 +100,48 @@ class App {
         formInputText.focus();
     }
 
-    _displayTask(task) {
-        let html = `
-            <div class="todo-task">
-                <p class="todo-text">${task.text}</p>
-                <button class="task-button finish-task">✅</button>
-                <button class="task-button delete-task">❌</button>
-            </div>
-        `;
+    _handleButtonClick(e) {
+        const clicked = e.target;
 
-        if (task.finishedDate) {
-            finishedList.insertAdjacentHTML("afterbegin", html);
-        } else {
-            list.insertAdjacentHTML("afterbegin", html);
+        if (clicked.classList.contains("task-button")) {
+            // get .todo-text (sibling element)
+            //      1. choose parent element
+            //      2. search for the child by class (.todo-text)
+            const taskText =
+                clicked.parentElement.querySelector(".todo-text").textContent;
+
+            // get instance by searching for text (assuming no duplicate tasks are present)
+            const tsk = this.#tasks.find(tsk => tsk.text === taskText);
+
+            // finishing or deleting? :
+            if (clicked.classList.contains("finish-task")) {
+                this._finishTask(tsk);
+            }
+
+            if (clicked.classList.contains("delete-task")) {
+                console.log("you wish to delete task:");
+                console.log(tsk);
+            }
         }
     }
 
     _finishTask(task) {
-        task.finishTask();
+        task = task.finishTask();
 
         // from array remove passed task
-        this.tasks.splice(this.task.indexOf(task), 1);
-        this.finishedTasks.push(task);
+        this.#tasks.splice(this.#tasks.indexOf(task), 1);
+
+        // add this task to finished tasks
+        this.#finishedTasks.push(task);
+
+        console.log(this.#tasks);
+        console.log(this.#finishedTasks);
 
         // update local storage
-        localStorage.removeItem("todo-tasks");
-        localStorage.setItem("todo-tasks", JSON.stringify(this.tasks));
+        localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
         localStorage.setItem(
-            "completed_tasks",
-            JSON.stringify(this.finishedTasks)
+            "finished-tasks",
+            JSON.stringify(this.#finishedTasks)
         );
     }
 }
@@ -150,6 +161,8 @@ class Task {
     finishTask() {
         this.finishedDate = Date.now();
         this.text = this.text.strike();
+
+        return this;
     }
 }
 
