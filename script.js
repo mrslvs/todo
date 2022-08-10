@@ -9,6 +9,7 @@ const form = document.getElementById("form");
 const formInputText = document.getElementById("todo-input");
 const list = document.getElementById("todo-list");
 const finishedList = document.getElementById("done-list");
+const errorField = document.querySelector(".error-message");
 
 class App {
     #tasks = [];
@@ -89,7 +90,16 @@ class App {
         // this._isDuplicate();
 
         // create instance of Item if text is entered and is not duplicate
-        if (formInputText.value.length === 0 || this._isDuplicate()) return;
+        if (formInputText.value.length === 0) {
+            this._showErrorMessage("Enter text");
+            return;
+        }
+
+        if (this._isDuplicate()) {
+            this._showErrorMessage("Task already exists");
+            return;
+        }
+
         const task = new Task(formInputText.value);
 
         // save item to local storage
@@ -102,42 +112,6 @@ class App {
         // clear input field
         formInputText.value = "";
         formInputText.focus();
-    }
-
-    _handleButtonClick(e) {
-        // handle task-button click (finish, delete, repeat)
-
-        const clicked = e.target; // which button has been clicked
-
-        if (clicked.classList.contains("task-button")) {
-            // get .todo-text (sibling element of button)
-            //      1. choose parent element
-            //      2. search for the child by class (.todo-text)
-            const taskText =
-                clicked.parentElement.querySelector(".todo-text").textContent;
-
-            // get instance of Task by searching for text (assuming no duplicate tasks are present)
-            let tsk = this.#tasks.find(tsk => tsk.text === taskText);
-
-            if (!tsk) {
-                // if task wasn't found among #tasks, it's in #finishedTasks
-                // finished tasks contain <strike> & </strike> tags, need to remove them
-                tsk = this.#finishedTasks.find(tsk => tsk.text === taskText);
-            }
-
-            // finishing or deleting? :
-            if (clicked.classList.contains("finish-task")) {
-                this._finishTask(tsk);
-            }
-
-            if (clicked.classList.contains("delete-task")) {
-                this._deleteTask(tsk);
-            }
-
-            if (clicked.classList.contains("repeat-task")) {
-                this._repeatTask(tsk);
-            }
-        }
     }
 
     _finishTask(task) {
@@ -215,7 +189,45 @@ class App {
         this.#tasks.splice(this.#tasks.indexOf(task), 1);
     }
 
+    _handleButtonClick(e) {
+        // handle task-button click (finish, delete, repeat)
+
+        const clicked = e.target; // which button has been clicked
+
+        if (clicked.classList.contains("task-button")) {
+            // get .todo-text (sibling element of button)
+            //      1. choose parent element
+            //      2. search for the child by class (.todo-text)
+            const taskText =
+                clicked.parentElement.querySelector(".todo-text").textContent;
+
+            // get instance of Task by searching for text (assuming no duplicate tasks are present)
+            let tsk = this.#tasks.find(tsk => tsk.text === taskText);
+
+            if (!tsk) {
+                // if task wasn't found among #tasks, it's in #finishedTasks
+                // finished tasks contain <strike> & </strike> tags, need to remove them
+                tsk = this.#finishedTasks.find(tsk => tsk.text === taskText);
+            }
+
+            // finishing or deleting? :
+            if (clicked.classList.contains("finish-task")) {
+                this._finishTask(tsk);
+            }
+
+            if (clicked.classList.contains("delete-task")) {
+                this._deleteTask(tsk);
+            }
+
+            if (clicked.classList.contains("repeat-task")) {
+                this._repeatTask(tsk);
+            }
+        }
+    }
+
     _isDuplicate() {
+        // checks if task already exists
+
         const texts = document.querySelectorAll(".todo-text");
 
         let isDup = false;
@@ -230,11 +242,32 @@ class App {
     }
 
     _updateStorage() {
+        // updates local storage
+
         localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
         localStorage.setItem(
             "finished-tasks",
             JSON.stringify(this.#finishedTasks)
         );
+    }
+
+    _showErrorMessage(msg) {
+        // if error message exists -> remove it and show new error
+
+        const oldError = document.getElementById("err-msg");
+        if (oldError) {
+            oldError.remove();
+        }
+
+        errorField.insertAdjacentHTML(
+            "afterbegin",
+            `<p id="err-msg">${msg}</p>`
+        );
+        errorField.classList.toggle("fade");
+
+        setTimeout(() => {
+            errorField.classList.toggle("fade");
+        }, 1500);
     }
 }
 
