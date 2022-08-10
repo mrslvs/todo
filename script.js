@@ -4,6 +4,7 @@
 //      types of tasks (home, work, sport, ...)
 //      remove all finished-tasks button
 //      isDuplicate or 0 chars eneter? => show warning (html+css)
+//      onLoad remove err-msg element
 
 const form = document.getElementById("form");
 const formInputText = document.getElementById("todo-input");
