@@ -3,8 +3,6 @@
 // to-do
 //      types of tasks (home, work, sport, ...)
 //      remove all finished-tasks button
-//      isDuplicate or 0 chars eneter? => show warning (html+css)
-//      onLoad remove err-msg element
 
 const form = document.getElementById("form");
 const formInputText = document.getElementById("todo-input");
@@ -23,7 +21,7 @@ class App {
     }
 
     _loadTasks() {
-        // load data from localStorage and display it
+        // from parsed JSON objects create instance of Task, save it to array & display it
 
         let tasksStorage = JSON.parse(localStorage.getItem("todo-tasks"));
         let finishedTasksStorage = JSON.parse(
@@ -31,31 +29,20 @@ class App {
         );
 
         if (tasksStorage) {
-            // from parsed JSON objects create instances of Task & save to array
             tasksStorage.forEach(task => {
                 let t = Object.assign(new Task(), task);
                 this.#tasks.push(t);
+                this._displayTask(t);
             });
-
-            this._displayTasks(this.#tasks);
         }
 
         if (finishedTasksStorage) {
             finishedTasksStorage.forEach(fTask => {
                 let fT = Object.assign(new Task(), fTask);
                 this.#finishedTasks.push(fT);
+                this._displayTask(fT);
             });
-
-            this._displayTasks(this.#finishedTasks);
         }
-    }
-
-    _displayTasks(taskArray) {
-        // take array of tasks and display each one
-
-        taskArray.forEach(task => {
-            this._displayTask(task);
-        });
     }
 
     _displayTask(task, animation = "") {
@@ -63,35 +50,27 @@ class App {
 
         let html = `<div class="todo-task ${animation}">`;
 
-        let htmlEnd = `
-                <button class="task-button delete-task">❌</button>
-            </div>
-        `;
+        let htmlEnd = `<button class="task-button delete-task">❌</button>
+            </div>`;
 
         if (task.finishedDate) {
-            html += `            
-                <p class="todo-text"><strike>${task.text}</strike></p>
-                <button class="task-button repeat-task">🔁</button>
-            `;
+            html += `<p class="todo-text"><strike>${task.text}</strike></p>
+                <button class="task-button repeat-task">🔁</button>`;
             finishedList.insertAdjacentHTML("afterbegin", html + htmlEnd);
         } else {
-            html += `
-                <p class="todo-text">${task.text}</p>
-                <button class="task-button finish-task">✅</button>
-            `;
+            html += `<p class="todo-text">${task.text}</p>
+                <button class="task-button finish-task">✅</button>`;
             list.insertAdjacentHTML("afterbegin", html + htmlEnd);
         }
     }
 
     _addTask(e) {
-        // create new task from FORM, save it into local storage and display it
+        // create new Task from <form> (+ save & display)
 
         // prevent page from reloading
         e.preventDefault();
 
-        // this._isDuplicate();
-
-        // create instance of Item if text is entered and is not duplicate
+        // create instance of Item or show error message
         if (formInputText.value.length === 0) {
             this._showErrorMessage("Enter text");
             return;
@@ -117,38 +96,34 @@ class App {
     }
 
     _finishTask(task) {
-        // take task, hide it, finish it (move it ot #finishedTasks) and display accordingly
+        // hide Task, move it to #finishedTasks and display accordingly
 
         this._hideTask(task);
         this._removeTaskFromArray(task);
-        task = task.finishTask();
+
+        task = task.finishTask(); // sets task.finishedDate
 
         this.#finishedTasks.push(task);
-
         this._updateStorage();
 
         this._displayTask(task, "fadeInLeft");
     }
 
     _deleteTask(task) {
+        // hide & delete
+
         this._hideTask(task);
-
-        if (task.finishedDate) {
-            this._removeTaskFromArray(task);
-            this._updateStorage();
-
-            return;
-        }
-
         this._removeTaskFromArray(task);
         this._updateStorage();
     }
 
     _repeatTask(task) {
+        // move task back from finishedTasks to tasks & display accordingly
+
         this._hideTask(task);
         this._removeTaskFromArray(task);
 
-        task = task.repeatTask();
+        task = task.repeatTask(); //unsets task.finishedDate
         this.#tasks.push(task);
 
         this._updateStorage();
@@ -156,18 +131,16 @@ class App {
     }
 
     _hideTask(task) {
-        // take task, find its parent element <div class="todo-task"> (find by task.text) and remove it from html
+        // find parent element (<div class="todo-task">) of the Task by its text (text is unique) & remove <div> from html
 
-        // all divs are childElements of list or finishedList
-        let searchIn = list;
+        let searchIn = list; // all divs are childElements of list or finishedList
 
         if (task.finishedDate) {
-            // if task has been finished, search in this node
-            searchIn = finishedList;
+            searchIn = finishedList; // if task has been finished, search in this node
         }
 
-        const taskElements = searchIn.querySelectorAll(".todo-task"); // all <div class="todo-task">
-        // ? cannot use: .find(el => el.querySelector(".todo-text").textContent === task.text);
+        const taskElements = searchIn.querySelectorAll(".todo-task");
+        // ?-> cannot use: .find(el => el.querySelector(".todo-text").textContent === task.text);
 
         let nodeToRemove;
 
@@ -177,14 +150,15 @@ class App {
             }
         });
 
-        nodeToRemove.classList.add("fadeOutRight");
+        nodeToRemove.classList.add("fadeOutRight"); // animate
         setTimeout(function () {
-            nodeToRemove.remove();
-            // after removing,
+            nodeToRemove.remove(); // after animation (300ms)
         }, 300);
     }
 
     _removeTaskFromArray(task) {
+        // remove task from its current array
+
         if (task.finishedDate) {
             this.#finishedTasks.splice(this.#finishedTasks.indexOf(task), 1);
 
@@ -197,25 +171,23 @@ class App {
     _handleButtonClick(e) {
         // handle task-button click (finish, delete, repeat)
 
-        const clicked = e.target; // which button has been clicked
+        const clicked = e.target; // what has been clicked
 
         if (clicked.classList.contains("task-button")) {
             // get .todo-text (sibling element of button)
             //      1. choose parent element
-            //      2. search for the child by class (.todo-text)
+            //      2. get child by class (.todo-text)
             const taskText =
                 clicked.parentElement.querySelector(".todo-text").textContent;
 
-            // get instance of Task by searching for text (assuming no duplicate tasks are present)
+            // get instance of Task - search by text (text is unique)
             let tsk = this.#tasks.find(tsk => tsk.text === taskText);
 
             if (!tsk) {
                 // if task wasn't found among #tasks, it's in #finishedTasks
-                // finished tasks contain <strike> & </strike> tags, need to remove them
                 tsk = this.#finishedTasks.find(tsk => tsk.text === taskText);
             }
 
-            // finishing or deleting? :
             if (clicked.classList.contains("finish-task")) {
                 this._finishTask(tsk);
             }
@@ -231,11 +203,10 @@ class App {
     }
 
     _isDuplicate() {
-        // checks if task already exists
-
-        const texts = document.querySelectorAll(".todo-text");
+        // check if task already exists
 
         let isDup = false;
+        const texts = document.querySelectorAll(".todo-text");
 
         texts.forEach(txt => {
             if (txt.textContent === formInputText.value) {
@@ -247,7 +218,7 @@ class App {
     }
 
     _updateStorage() {
-        // updates local storage
+        // update local storage
 
         localStorage.setItem("todo-tasks", JSON.stringify(this.#tasks));
         localStorage.setItem(
@@ -257,7 +228,7 @@ class App {
     }
 
     _showErrorMessage(msg) {
-        // if error message exists -> remove it and show new error
+        // if error message already exists -> remove it and show new error
 
         const oldError = document.getElementById("err-msg");
         if (oldError) {
