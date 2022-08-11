@@ -58,10 +58,11 @@ class App {
         });
     }
 
-    _displayTask(task) {
+    _displayTask(task, animation = "") {
         // take Task as argument & insert it into HTML
 
-        let html = `<div class="todo-task">`;
+        let html = `<div class="todo-task ${animation}">`;
+
         let htmlEnd = `
                 <button class="task-button delete-task">❌</button>
             </div>
@@ -108,7 +109,7 @@ class App {
         this._updateStorage();
 
         // display new item
-        this._displayTask(task);
+        this._displayTask(task, "fadeInLeft");
 
         // clear input field
         formInputText.value = "";
@@ -122,12 +123,11 @@ class App {
         this._removeTaskFromArray(task);
         task = task.finishTask();
 
-        console.log(task);
         this.#finishedTasks.push(task);
 
         this._updateStorage();
 
-        this._displayTask(task);
+        this._displayTask(task, "fadeInLeft");
     }
 
     _deleteTask(task) {
@@ -152,7 +152,7 @@ class App {
         this.#tasks.push(task);
 
         this._updateStorage();
-        this._displayTask(task);
+        this._displayTask(task, "fadeInLeft");
     }
 
     _hideTask(task) {
@@ -177,7 +177,11 @@ class App {
             }
         });
 
-        nodeToRemove.remove();
+        nodeToRemove.classList.add("fadeOutRight");
+        setTimeout(function () {
+            nodeToRemove.remove();
+            // after removing,
+        }, 300);
     }
 
     _removeTaskFromArray(task) {
