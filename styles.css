@@ -51,7 +51,7 @@ h1 {
 #todo-input:hover,
 .submit:hover {
     background-color: rgb(248, 248, 248);
-    transition: background-color 0.11s ease-in-out;
+    transition: background-color 200ms ease-in-out;
 }
 
 #todo-input:focus,
@@ -74,28 +74,50 @@ h1 {
     flex-direction: row;
     align-items: center;
 
-    border: 1px solid black;
-    /* padding: 0 5px 0 5px; */
+    border-radius: 0.8rem;
+    border: 0.2rem solid rgb(3, 48, 3);
+    padding: 0.5rem 1rem 0.5rem 1rem;
+    margin: 0.3rem 0 0.3rem 0;
+    /* background-color: rgb(21, 18, 87); */
+    background-color: #48844c;
+    color: white;
 }
 
 .todo-text {
     min-width: 15rem;
     max-width: 15rem;
     word-wrap: break-word;
+    margin-right: 2rem;
+    font-size: 1.1rem;
 }
 
 .task-button {
     justify-content: center;
     max-height: 5rem;
+    font-size: 1.5rem;
+    padding: 0.3rem;
+
+    background-color: transparent;
+    border-radius: 0.8rem;
+    /* border: 0.2rem solid rgb(3, 48, 3); */
+    border: 0px;
+    margin: 0.2rem;
 }
 
-.buttons {
-    align-items: center;
+.task-button:hover {
+    background-color: rgba(255, 255, 255, 0.3);
+    transition: background-color 200ms ease-in-out;
 }
+
+/* .buttons {
+    align-items: center;
+} */
 
 .delim {
     max-width: 80%;
     margin: 1.5rem auto 1.5rem auto;
+    height: 0.3rem;
+    background-color: rgba(17, 0, 255, 0.247);
 }
 
 .error-message {
